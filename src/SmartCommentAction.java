@@ -11,9 +11,11 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiClassType;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementFactory;
+import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiParameter;
+import com.intellij.psi.PsiType;
 import com.intellij.psi.impl.source.PsiJavaFileImpl;
 import com.intellij.psi.javadoc.PsiDocComment;
 
@@ -66,13 +68,20 @@ public class SmartCommentAction extends AnAction {
         SmartCommentConfig config = SmartCommentConfig.getInstance();
         //查找光标所在方法
         PsiMethod psiMethod = getTargetMethod(offset, psiClass.getMethods());
-        if (null == psiMethod) {
-            //光标在类内但是不属于任何一个方法-类注释
-            addCommentToTarget(project, psiClass, getClassComment(psiClass, config));
+        if (null != psiMethod) {
+            //光标在方法内-方法注释
+            addCommentToTarget(project, psiMethod, getMethodComment(psiClass.getQualifiedName(), psiMethod, config));
             return;
         }
-        //光标在方法内-方法注释
-        addCommentToTarget(project, psiMethod, getMethodComment(psiClass.getQualifiedName(), psiMethod, config));
+        //查找光标所在属性
+        PsiField psiField = getTargetField(offset, psiClass.getFields());
+        if (null != psiField) {
+            //光标在属性内-属性注释
+            addCommentToTarget(project, psiField, getFieldComment(psiField));
+            return;
+        }
+        //光标在类内但是不属于任何一个方法或属性-类注释
+        addCommentToTarget(project, psiClass, getClassComment(psiClass, config));
     }
 
     /**
@@ -156,6 +165,24 @@ public class SmartCommentAction extends AnAction {
     }
 
     /**
+     * @author 张志强
+     * @method SmartCommentAction#getTargetField
+     * @description 查找光标所在属性
+     * @param offset
+     * @param allFields
+     * @return
+     */
+    private PsiField getTargetField(int offset, PsiField[] allFields) {
+        for (PsiField field : allFields) {
+            if (field.getTextRange().contains(offset)) {
+                return field;
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * @author zhiqiangzhang
      * @method SmartCommentAction#getClassComment
      * @description 获取类注释
@@ -196,7 +223,8 @@ public class SmartCommentAction extends AnAction {
             sb.append(" * @param " + parameter.getName() + STR_WRAP);
         }
         //返回
-        if (!KW_VOID.equals(targetMethod.getReturnType().getPresentableText())) {
+        PsiType returnType = targetMethod.getReturnType();
+        if (null != returnType && !KW_VOID.equals(returnType.getPresentableText())) {
             sb.append(" * @return" + STR_WRAP);
         }
         //异常
@@ -204,6 +232,22 @@ public class SmartCommentAction extends AnAction {
             sb.append(" * @throws " + referencedType.getClassName() + STR_WRAP);
         }
         sb.append(" */" + STR_WRAP);
+
+        return sb.toString();
+    }
+
+    /**
+     * @author 张志强
+     * @method SmartCommentAction#getFieldComment
+     * @description 获取属性注释
+     * @param psiField
+     * @return
+     */
+    private String getFieldComment(PsiField psiField) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("/**" + STR_WRAP);
+        sb.append(" * " + psiField.getName() + STR_WRAP);
+        sb.append(" */");
 
         return sb.toString();
     }
