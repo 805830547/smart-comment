@@ -19,8 +19,8 @@ public class SmartCommentGui {
     private void createUIComponents() {
     }
 
-    public void createUI(Project project) {
-        this.mConfig = SmartCommentConfig.getInstance(project);
+    public void createUI() {
+        this.mConfig = SmartCommentConfig.getInstance();
         reloadConfig();
     }
 

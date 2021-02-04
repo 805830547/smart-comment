@@ -38,12 +38,11 @@ public class SmartCommentConfig implements PersistentStateComponent<SmartComment
      * @author zhiqiangzhang
      * @method SmartCommentConfig#getInstance
      * @description 通过传入的工程获取核心配置
-     * @param project
      * @return
      */
     @Nullable
-    public static SmartCommentConfig getInstance(Project project) {
-        return ServiceManager.getService(project, SmartCommentConfig.class);
+    public static SmartCommentConfig getInstance() {
+        return ServiceManager.getService(SmartCommentConfig.class);
     }
 
     /**

@@ -7,7 +7,7 @@
   <version>1.0</version>
 
   <!-- 供应商邮箱和网址-->
-  <vendor email="805830547@qq.com" url="http://805830547.xyz">zzq</vendor>
+  <vendor email="ly805830547@gmail.com" url="https://github.com/805830547/smart-comment">zhiqiangzhang</vendor>
 
   <!-- 插件描述-->
   <description><![CDATA[
@@ -29,6 +29,9 @@
 
   <!-- 扩展功能-->
   <extensions defaultExtensionNs="com.intellij">
+    <applicationService serviceInterface="SmartCommentConfig" serviceImplementation="SmartCommentConfig"/>
+    <applicationConfigurable groupId="editor" displayName="Smart Comment"
+                         id="preferences.SmartCommentPlugin" instance="SmartCommentPluginConfigurable"/>
   </extensions>
 
   <!-- 触发动作-->
@@ -38,11 +41,5 @@
       <keyboard-shortcut keymap="$default" first-keystroke="shift alt M"/>
     </action>
   </actions>
-
-  <extensions defaultExtensionNs="com.intellij">
-    <projectService serviceInterface="SmartCommentConfig" serviceImplementation="SmartCommentConfig"/>
-    <projectConfigurable groupId="editor" displayName="Smart Comment"
-                         id="preferences.SmartCommentPlugin" instance="SmartCommentPluginConfigurable"/>
-  </extensions>
 
 </idea-plugin>

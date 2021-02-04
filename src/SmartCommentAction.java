@@ -43,12 +43,11 @@ public class SmartCommentAction extends AnAction {
             PsiJavaFileImpl psiJavaFile = (PsiJavaFileImpl) psiFile;
             PsiClass[] classes = psiJavaFile.getClasses();
             PsiClass psiClass = classes[0];
-            PsiMethod[] allMethods = psiClass.getAllMethods();
 
             //获取项目
             Project project = e.getProject();
             //获取配置
-            SmartCommentConfig config = SmartCommentConfig.getInstance(project);
+            SmartCommentConfig config = SmartCommentConfig.getInstance();
 
             if (!psiClass.getTextRange().contains(offset)) {
                 //光标在类外-类注释
@@ -57,7 +56,7 @@ public class SmartCommentAction extends AnAction {
             }
 
             //查找光标所在方法
-            PsiMethod targetMethod = getTargetMethod(caret.getOffset(), allMethods);
+            PsiMethod targetMethod = getTargetMethod(caret.getOffset(), psiClass.getMethods());
             if (Objects.isNull(targetMethod)) {
                 //光标在类内但是不属于任何一个方法-类注释
                 //光标在方法内-方法注释
