@@ -4,20 +4,34 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.editor.Caret;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.*;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiClassType;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiElementFactory;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiParameter;
 import com.intellij.psi.impl.source.PsiJavaFileImpl;
 import com.intellij.psi.javadoc.PsiDocComment;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Objects;
 
+/**
+ * @author zhiqiangzhang
+ * @email ly805830547@gmail.com
+ * @name SmartCommentAction
+ * @description 智能注释动作触发类
+ * @date 2021-02-04 15:07:51
+ */
 public class SmartCommentAction extends AnAction {
     //换行
     private static final String STR_WRAP = "\n";
+    //关键词 void
+    private static final String KW_VOID = "void";
     //日期格式化
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
@@ -30,46 +44,116 @@ public class SmartCommentAction extends AnAction {
     @Override
     public void actionPerformed(AnActionEvent e) {
         PsiFile psiFile = e.getData(CommonDataKeys.PSI_FILE);
-        if (psiFile.getFileType() == JavaFileType.INSTANCE) {
-            //java文件，获取光标位置
-            DataContext dataContext = e.getDataContext();
-            Editor editor = CommonDataKeys.EDITOR.getData(dataContext);;
-            Caret caret = editor.getCaretModel().getCurrentCaret();
-
-            //光标位置偏移量
-            int offset = caret.getOffset();
-
-            //获取类方法
-            PsiJavaFileImpl psiJavaFile = (PsiJavaFileImpl) psiFile;
-            PsiClass[] classes = psiJavaFile.getClasses();
-            PsiClass psiClass = classes[0];
-
-            //获取项目
-            Project project = e.getProject();
-            //获取配置
-            SmartCommentConfig config = SmartCommentConfig.getInstance();
-
-            if (!psiClass.getTextRange().contains(offset)) {
-                //光标在类外-类注释
-                addCommentToTarget(project, psiClass, getClassComment(psiClass, config));
-                return;
-            }
-
-            //查找光标所在方法
-            PsiMethod targetMethod = getTargetMethod(caret.getOffset(), psiClass.getMethods());
-            if (Objects.isNull(targetMethod)) {
-                //光标在类内但是不属于任何一个方法-类注释
-                //光标在方法内-方法注释
-                addCommentToTarget(project, psiClass, getClassComment(psiClass, config));
-                return;
-            }
-
-            //光标在方法内-方法注释
-            addCommentToTarget(project, targetMethod,
-                    getMethodComment(psiClass.getQualifiedName(), targetMethod, config));
+        if (psiFile.getFileType() != JavaFileType.INSTANCE) {
+            //非java文件，不处理
+            return;
         }
+        //java文件，获取光标位置
+        DataContext dataContext = e.getDataContext();
+        Editor editor = CommonDataKeys.EDITOR.getData(dataContext);;
+        //光标位置偏移量
+        int offset = editor.getCaretModel().getCurrentCaret().getOffset();
+        //获取类文件
+        PsiJavaFileImpl psiJavaFile = (PsiJavaFileImpl) psiFile;
+        //查找光标所在类
+        PsiClass psiClass = getTargetClass(offset, psiJavaFile.getClasses());
+        if (null == psiClass) {
+            return;
+        }
+        //获取项目
+        Project project = e.getProject();
+        //获取配置
+        SmartCommentConfig config = SmartCommentConfig.getInstance();
+        //查找光标所在方法
+        PsiMethod psiMethod = getTargetMethod(offset, psiClass.getMethods());
+        if (null == psiMethod) {
+            //光标在类内但是不属于任何一个方法-类注释
+            addCommentToTarget(project, psiClass, getClassComment(psiClass, config));
+            return;
+        }
+        //光标在方法内-方法注释
+        addCommentToTarget(project, psiMethod, getMethodComment(psiClass.getQualifiedName(), psiMethod, config));
     }
 
+    /**
+     * @author 张志强
+     * @method SmartCommentAction#getTargetClass
+     * @description 查找光标所在类
+     * @param offset
+     * @param classes
+     * @return
+     */
+    private PsiClass getTargetClass(int offset, PsiClass[] classes) {
+        //获取光标所在的相对外部类
+        PsiClass psiClass = getTargetClassCommon(offset, classes);
+        if (null == psiClass) {
+            //光标不在任一相对外部类内，返回null
+            return null;
+        }
+
+        return getTargetInnerClass(offset, psiClass);
+    }
+
+    /**
+     * @author 张志强
+     * @method SmartCommentAction#getTargetInnerClass
+     * @description 查找光标所在类
+     * @param offset
+     * @param psiClass
+     * @return
+     */
+    private PsiClass getTargetInnerClass(int offset, PsiClass psiClass) {
+        //相对外部类存在，获取相对外部类的相对内部类
+        PsiClass[] classes = psiClass.getInnerClasses();
+        if (classes.length == 0) {
+            //相对内部类不存在，返回该相对外部类
+            return psiClass;
+        }
+        //相对内部类存在，获取光标所在的相对内部类
+        PsiClass innerClass = getTargetClassCommon(offset, classes);
+        if (null == innerClass) {
+            //光标不在任一相对内部类内，返回相对外部类外部类
+            return psiClass;
+        }
+
+        return getTargetInnerClass(offset, innerClass);
+    }
+
+    /**
+     * @author 张志强
+     * @method SmartCommentAction#getTargetClassCommon
+     * @description 查找光标所在类
+     * @param offset
+     * @param classes
+     * @return
+     */
+    private PsiClass getTargetClassCommon(int offset, PsiClass[] classes) {
+        for (PsiClass psiClass : classes) {
+            if (psiClass.getTextRange().contains(offset)) {
+                return psiClass;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @author zhiqiangzhang
+     * @method SmartCommentAction#getTargetMethod
+     * @description 查找光标所在方法
+     * @param offset
+     * @param allMethods
+     * @return
+     */
+    private PsiMethod getTargetMethod(int offset, PsiMethod[] allMethods) {
+        for (PsiMethod method : allMethods) {
+            if (method.getTextRange().contains(offset)) {
+                return method;
+            }
+        }
+
+        return null;
+    }
 
     /**
      * @author zhiqiangzhang
@@ -94,25 +178,6 @@ public class SmartCommentAction extends AnAction {
 
     /**
      * @author zhiqiangzhang
-     * @method SmartCommentAction#addCommentToTarget
-     * @description 添加注释到目标
-     * @param project
-     * @param target
-     * @param comment
-     */
-    private void addCommentToTarget(Project project, PsiElement target, String comment) {
-        //通过获取到PsiElementFactory来创建相应的Element，包括字段，方法，注解，类，内部类等等
-        PsiElementFactory elementFactory = JavaPsiFacade.getElementFactory(project);
-        //创建java doc
-        PsiDocComment psiDocComment = elementFactory.createDocCommentFromText(comment);
-        //将注释添加至方法前
-        WriteCommandAction.runWriteCommandAction(project, () -> {
-            target.addAfter(psiDocComment, null);
-        });
-    }
-
-    /**
-     * @author zhiqiangzhang
      * @method SmartCommentAction#getMethodComment
      * @description 获取方法注释
      * @param classFullName
@@ -131,7 +196,7 @@ public class SmartCommentAction extends AnAction {
             sb.append(" * @param " + parameter.getName() + STR_WRAP);
         }
         //返回
-        if (!"void".equals(targetMethod.getReturnType().getPresentableText())) {
+        if (!KW_VOID.equals(targetMethod.getReturnType().getPresentableText())) {
             sb.append(" * @return" + STR_WRAP);
         }
         //异常
@@ -145,20 +210,21 @@ public class SmartCommentAction extends AnAction {
 
     /**
      * @author zhiqiangzhang
-     * @method SmartCommentAction#getTargetMethod
-     * @description 查找光标所在方法
-     * @param offset
-     * @param allMethods
-     * @return
+     * @method SmartCommentAction#addCommentToTarget
+     * @description 添加注释到目标
+     * @param project
+     * @param target
+     * @param comment
      */
-    private PsiMethod getTargetMethod(int offset, PsiMethod[] allMethods) {
-        for (PsiMethod method : allMethods) {
-            if (method.getTextRange().contains(offset)) {
-                return method;
-            }
-        }
-
-        return null;
+    private void addCommentToTarget(Project project, PsiElement target, String comment) {
+        //通过获取到PsiElementFactory来创建相应的Element，包括字段，方法，注解，类，内部类等等
+        PsiElementFactory elementFactory = JavaPsiFacade.getElementFactory(project);
+        //创建java doc
+        PsiDocComment psiDocComment = elementFactory.createDocCommentFromText(comment);
+        //将注释添加至方法前
+        WriteCommandAction.runWriteCommandAction(project, () -> {
+            target.addAfter(psiDocComment, null);
+        });
     }
 
 }

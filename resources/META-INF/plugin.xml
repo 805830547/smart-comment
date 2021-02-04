@@ -11,16 +11,20 @@
 
   <!-- 插件描述-->
   <description><![CDATA[
-      Generate java comments.<br>
-      <em>Default hot key: Ctrl + Shift + M</em>
+      Generate java comments<br>
+      Default hot key: Ctrl + Shift + M<br><br>
+      Support: <br>
+      1.Class comment<br>
+      2.Method comment<br>
+      3.Field comment<br>
     ]]></description>
 
 
   <!-- 版本更新日志-->
   <change-notes><![CDATA[
-      1.Class comment.<br>
-      2.Method comment.<br>
-      3.field comment.<br>
+      1.2021-02-01: Support class comment.<br>
+      2.2021-02-02: Support method comment.<br>
+      3.2021-02-03: Support field comment.<br>
     ]]>
   </change-notes>
 

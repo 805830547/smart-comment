@@ -2,11 +2,17 @@ import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
-import com.intellij.openapi.project.Project;
 import com.intellij.util.xmlb.XmlSerializerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * @author zhiqiangzhang
+ * @email ly805830547@gmail.com
+ * @name SmartCommentConfig
+ * @description 智能注释数据持久化配置类
+ * @date 2021-02-04 15:13:13
+ */
 @State(
         name = "SmartCommentConfig",
         storages = {@Storage("SmartCommentConfig.xml")}

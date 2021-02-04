@@ -6,6 +6,13 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
+/**
+ * @author zhiqiangzhang
+ * @email ly805830547@gmail.com
+ * @name SmartCommentPluginConfigurable
+ * @description 智能注释配置面板
+ * @date 2021-02-04 15:13:37
+ */
 public class SmartCommentPluginConfigurable implements SearchableConfigurable {
     private SmartCommentGui mGUI;
 
