@@ -6,16 +6,8 @@ import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.JavaPsiFacade;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiClassType;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiElementFactory;
-import com.intellij.psi.PsiField;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiMethod;
-import com.intellij.psi.PsiParameter;
-import com.intellij.psi.PsiType;
+import com.intellij.psi.*;
+import com.intellij.psi.impl.source.PsiClassImpl;
 import com.intellij.psi.impl.source.PsiJavaFileImpl;
 import com.intellij.psi.javadoc.PsiDocComment;
 
@@ -74,24 +66,22 @@ public class SmartCommentAction extends AnAction {
         }
         //获取项目
         Project project = e.getProject();
-        //获取配置
-        SmartCommentConfig config = SmartCommentConfig.getInstance(project);
         //查找光标所在方法
         PsiMethod psiMethod = getTargetMethod(offset, psiClass.getMethods());
         if (null != psiMethod) {
             //光标在方法内-方法注释
-            addCommentToTarget(project, psiMethod, getMethodComment(psiClass.getQualifiedName(), psiMethod, config));
+            addCommentToTarget(project, psiMethod);
             return;
         }
         //查找光标所在属性
         PsiField psiField = getTargetField(offset, psiClass.getFields());
         if (null != psiField) {
             //光标在属性内-属性注释
-            addCommentToTarget(project, psiField, getFieldComment(psiField, config));
+            addCommentToTarget(project, psiField);
             return;
         }
         //光标在类内但是不属于任何一个方法或属性-类注释
-        addCommentToTarget(project, psiClass, getClassComment(psiClass, config));
+        addCommentToTarget(project, psiClass);
     }
 
     /**
@@ -200,11 +190,11 @@ public class SmartCommentAction extends AnAction {
      * @param config
      * @return
      */
-    private String getClassComment(PsiClass psiClass, SmartCommentConfig config) {
+    private static String getClassComment(PsiClass psiClass, SmartCommentConfig config) {
         StringBuilder sb = new StringBuilder();
         sb.append("/**" + STR_WRAP);
         if (config.isClassAuthor()) {
-            sb.append(" * @author " + config.getAuthorText() + STR_WRAP);
+            sb.append(" * @author " + config.getAuthorTextOrDefault() + STR_WRAP);
         }
         if (config.isClassEmail()) {
             sb.append(" * @email " + config.getEmailText() + STR_WRAP);
@@ -230,39 +220,39 @@ public class SmartCommentAction extends AnAction {
      * @author zhiqiangzhang
      * @method SmartCommentAction#getMethodComment
      * @description 获取方法注释
-     * @param classFullName
-     * @param targetMethod
+     * @param psiMethod
      * @param config
      * @return
      */
-    private String getMethodComment(String classFullName, PsiMethod targetMethod, SmartCommentConfig config) {
+    private static String getMethodComment(PsiMethod psiMethod, SmartCommentConfig config) {
         StringBuilder sb = new StringBuilder();
         sb.append("/**" + STR_WRAP);
         if (config.isMethodAuthor()) {
-            sb.append(" * @author " + config.getAuthorText() + STR_WRAP);
+            sb.append(" * @author " + config.getAuthorTextOrDefault() + STR_WRAP);
         }
         if (config.isMethodMethod()) {
-            sb.append(" * @method " + classFullName + "#" + targetMethod.getName() + STR_WRAP);
+            sb.append(" * @method " + ((PsiClassImpl) psiMethod.getParent()).getQualifiedName()
+                    + "#" + psiMethod.getName() + STR_WRAP);
         }
         if (config.isMethodDescription()) {
             sb.append(" * @description TODO" + STR_WRAP);
         }
         //入参
         if (config.isMethodParam()) {
-            for (PsiParameter parameter : targetMethod.getParameterList().getParameters()) {
+            for (PsiParameter parameter : psiMethod.getParameterList().getParameters()) {
                 sb.append(" * @param " + parameter.getName() + STR_WRAP);
             }
         }
         //返回
         if (config.isMethodReturn()) {
-            PsiType returnType = targetMethod.getReturnType();
+            PsiType returnType = psiMethod.getReturnType();
             if (null != returnType && !KW_VOID.equals(returnType.getPresentableText())) {
                 sb.append(" * @return" + STR_WRAP);
             }
         }
         //异常
         if (config.isMethodThrows()) {
-            for (PsiClassType referencedType : targetMethod.getThrowsList().getReferencedTypes()) {
+            for (PsiClassType referencedType : psiMethod.getThrowsList().getReferencedTypes()) {
                 sb.append(" * @throws " + referencedType.getClassName() + STR_WRAP);
             }
         }
@@ -281,13 +271,38 @@ public class SmartCommentAction extends AnAction {
      * @param psiField
      * @return
      */
-    private String getFieldComment(PsiField psiField, SmartCommentConfig config) {
+    private static String getFieldComment(PsiField psiField, SmartCommentConfig config) {
         StringBuilder sb = new StringBuilder();
         sb.append("/**" + STR_WRAP);
         sb.append(" * " + (config.isFieldName() ? psiField.getName() : "") + STR_WRAP);
         sb.append(" */");
 
         return sb.toString();
+    }
+
+
+    /**
+     * @author zhiqiangzhang
+     * @method SmartCommentAction#addCommentToTarget
+     * @description 添加注释到目标
+     * @param project
+     * @param psiElement
+     */
+    public static void addCommentToTarget(Project project, PsiElement psiElement) {
+        //获取配置
+        SmartCommentConfig config = SmartCommentConfig.getInstance(project);
+        if (psiElement instanceof PsiClass) {
+            addCommentToTarget(project, psiElement, getClassComment((PsiClass)psiElement, config));
+            return;
+        }
+        if (psiElement instanceof PsiMethod) {
+            addCommentToTarget(project, psiElement, getMethodComment((PsiMethod)psiElement, config));
+            return;
+        }
+        if (psiElement instanceof PsiField) {
+            addCommentToTarget(project, psiElement, getFieldComment((PsiField)psiElement, config));
+            return;
+        }
     }
 
     /**
@@ -298,7 +313,7 @@ public class SmartCommentAction extends AnAction {
      * @param target
      * @param comment
      */
-    private void addCommentToTarget(Project project, PsiElement target, String comment) {
+    private static void addCommentToTarget(Project project, PsiElement target, String comment) {
         //通过获取到PsiElementFactory来创建相应的Element，包括字段，方法，注解，类，内部类等等
         PsiElementFactory elementFactory = JavaPsiFacade.getElementFactory(project);
         //创建java doc

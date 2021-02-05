@@ -37,6 +37,29 @@ public class SmartCommentConfig implements PersistentStateComponent<SmartComment
     SmartCommentConfig() {
     }
 
+
+    /**
+     * @author zhiqiangzhang
+     * @method SmartCommentConfig#getAuthorTextOrDefault
+     * @description 获取用户名，没有配置则取系统用户名
+     * @return
+     */
+    public String getAuthorTextOrDefault() {
+        String userName = authorText;
+        if (null != userName && userName.trim().length() > 0) {
+            return userName;
+        }
+        userName = System.getProperty("user.name");
+        if (null != userName && userName.trim().length() > 0) {
+            return userName;
+        }
+        userName = System.getenv("USER");
+        if (null != userName && userName.trim().length() > 0) {
+            return userName;
+        }
+        return "";
+    }
+
     public String getAuthorText() {
         return authorText;
     }

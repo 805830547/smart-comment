@@ -17,17 +17,25 @@
       1.Class comment<br>
       2.Method comment<br>
       3.Field comment<br>
+      4.Inner class comment<br>
+      5.Optional config<br>
+      6.Comment inspection<br>
     ]]></description>
 
 
   <!-- 版本更新日志-->
   <change-notes><![CDATA[
-      1.2021-02-01<br>
-      -Support class comment<br>
-      2.2021-02-02<br>
-      -Support method comment<br>
-      3.2021-02-03<br>
+      2021-02-05<br>
+      -Comment inspection<br>
+      -Optional config<br>
+      2021-02-04<br>
+      -Support inner class<br>
+      2021-02-03<br>
       -Support field comment<br>
+      2021-02-02<br>
+      -Support method comment<br>
+      2021-02-01<br>
+      -Support class comment<br>
     ]]>
   </change-notes>
 
@@ -38,7 +46,9 @@
   <extensions defaultExtensionNs="com.intellij">
     <projectService serviceInterface="SmartCommentConfig" serviceImplementation="SmartCommentConfig"/>
     <projectConfigurable groupId="editor" displayName="Smart Comment"
-                         id="preferences.SmartCommentPlugin" instance="SmartCommentPluginConfigurable"/>
+      id="preferences.SmartCommentPlugin" instance="SmartCommentPluginConfigurable"/>
+    <localInspection language="JAVA" displayName="Smart Comment" groupPath="Java" groupBundle="messages.InspectionsBundle"
+      groupKey="group.names.probable.bugs" enabledByDefault="true" level="WARNING" implementationClass="SmartCommentInspection"/>
   </extensions>
 
   <!-- 触发动作-->
