@@ -33,6 +33,7 @@ public class SmartCommentConfig implements PersistentStateComponent<SmartComment
     private boolean methodReturn = true;
     private boolean fieldName = true;
     private boolean methodThrows = true;
+    private boolean commentInspection = true;
 
     SmartCommentConfig() {
     }
@@ -170,6 +171,14 @@ public class SmartCommentConfig implements PersistentStateComponent<SmartComment
 
     public void setMethodThrows(boolean methodThrows) {
         this.methodThrows = methodThrows;
+    }
+
+    public boolean isCommentInspection() {
+        return commentInspection;
+    }
+
+    public void setCommentInspection(boolean commentInspection) {
+        this.commentInspection = commentInspection;
     }
 
     /**

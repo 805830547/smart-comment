@@ -39,6 +39,9 @@ public class SmartCommentInspection extends AbstractBaseJavaLocalInspectionTool 
             }
 
             private void doCheckForClassElement(PsiJavaDocumentedElement element, String elementName) {
+                if (!SmartCommentConfig.getInstance(element.getProject()).isCommentInspection()) {
+                    return;
+                }
                 PsiDocComment docComment = element.getDocComment();
                 if (null == docComment) {
                     holder.registerProblem(element, elementName + ": " + DESCRIPTION_TEMPLATE, myQuickFix);

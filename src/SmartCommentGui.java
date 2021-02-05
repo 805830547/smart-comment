@@ -25,6 +25,7 @@ public class SmartCommentGui {
     private JCheckBox methodReturn;
     private JCheckBox fieldName;
     private JCheckBox methodThrows;
+    private JCheckBox commentInspection;
 
     private SmartCommentConfig mConfig;
 
@@ -57,7 +58,9 @@ public class SmartCommentGui {
                 && this.methodReturn.isSelected() == this.mConfig.isMethodReturn()
                 && this.methodThrows.isSelected() == this.mConfig.isMethodThrows()
 
-                && this.fieldName.isSelected() == this.mConfig.isFieldName();
+                && this.fieldName.isSelected() == this.mConfig.isFieldName()
+
+                && this.commentInspection.isSelected() == this.mConfig.isCommentInspection();
     }
 
     public void apply() {
@@ -78,6 +81,8 @@ public class SmartCommentGui {
         this.mConfig.setMethodThrows(this.methodThrows.isSelected());
 
         this.mConfig.setFieldName(this.fieldName.isSelected());
+
+        this.mConfig.setCommentInspection(this.commentInspection.isSelected());
     }
 
     public void reloadConfig() {
@@ -98,6 +103,8 @@ public class SmartCommentGui {
         this.methodThrows.setSelected(this.mConfig.isMethodThrows());
 
         this.fieldName.setSelected(this.mConfig.isFieldName());
+
+        this.commentInspection.setSelected(this.mConfig.isCommentInspection());
     }
 
 }
