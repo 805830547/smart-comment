@@ -2,7 +2,7 @@
   <!-- 插件唯一id-->
   <id>com.zzq.plugin.smart.comment</id>
   <!-- 插件名称-->
-  <name>smart-comment</name>
+  <name>Smart Comment</name>
   <!-- 插件版本-->
   <version>1.0</version>
 
@@ -22,9 +22,12 @@
 
   <!-- 版本更新日志-->
   <change-notes><![CDATA[
-      1.2021-02-01: Support class comment.<br>
-      2.2021-02-02: Support method comment.<br>
-      3.2021-02-03: Support field comment.<br>
+      1.2021-02-01<br>
+      -Support class comment<br>
+      2.2021-02-02<br>
+      -Support method comment<br>
+      3.2021-02-03<br>
+      -Support field comment<br>
     ]]>
   </change-notes>
 
@@ -33,8 +36,8 @@
 
   <!-- 扩展功能-->
   <extensions defaultExtensionNs="com.intellij">
-    <applicationService serviceInterface="SmartCommentConfig" serviceImplementation="SmartCommentConfig"/>
-    <applicationConfigurable groupId="editor" displayName="Smart Comment"
+    <projectService serviceInterface="SmartCommentConfig" serviceImplementation="SmartCommentConfig"/>
+    <projectConfigurable groupId="editor" displayName="Smart Comment"
                          id="preferences.SmartCommentPlugin" instance="SmartCommentPluginConfigurable"/>
   </extensions>
 

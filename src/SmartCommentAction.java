@@ -30,11 +30,21 @@ import java.time.format.DateTimeFormatter;
  * @date 2021-02-04 15:07:51
  */
 public class SmartCommentAction extends AnAction {
-    //换行
+    /**
+     * STR_WRAP 换行
+     */
     private static final String STR_WRAP = "\n";
-    //关键词 void
+    /**
+     * COMMENT_PRE 注释前缀
+     */
+    private static final String COMMENT_PRE = "@";
+    /**
+     * KW_VOID 关键词 void
+     */
     private static final String KW_VOID = "void";
-    //日期格式化
+    /**
+     * DATE_TIME_FORMATTER 日期格式化
+     */
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     /**
@@ -65,7 +75,7 @@ public class SmartCommentAction extends AnAction {
         //获取项目
         Project project = e.getProject();
         //获取配置
-        SmartCommentConfig config = SmartCommentConfig.getInstance();
+        SmartCommentConfig config = SmartCommentConfig.getInstance(project);
         //查找光标所在方法
         PsiMethod psiMethod = getTargetMethod(offset, psiClass.getMethods());
         if (null != psiMethod) {
@@ -77,7 +87,7 @@ public class SmartCommentAction extends AnAction {
         PsiField psiField = getTargetField(offset, psiClass.getFields());
         if (null != psiField) {
             //光标在属性内-属性注释
-            addCommentToTarget(project, psiField, getFieldComment(psiField));
+            addCommentToTarget(project, psiField, getFieldComment(psiField, config));
             return;
         }
         //光标在类内但是不属于任何一个方法或属性-类注释
@@ -193,11 +203,24 @@ public class SmartCommentAction extends AnAction {
     private String getClassComment(PsiClass psiClass, SmartCommentConfig config) {
         StringBuilder sb = new StringBuilder();
         sb.append("/**" + STR_WRAP);
-        sb.append(" * @author " + config.getAuthorText() + STR_WRAP);
-        sb.append(" * @email " + config.getEmailText() + STR_WRAP);
-        sb.append(" * @name " + psiClass.getQualifiedName() + STR_WRAP);
-        sb.append(" * @description TODO" + STR_WRAP);
-        sb.append(" * @date " + LocalDateTime.now().format(DATE_TIME_FORMATTER) + STR_WRAP);
+        if (config.isClassAuthor()) {
+            sb.append(" * @author " + config.getAuthorText() + STR_WRAP);
+        }
+        if (config.isClassEmail()) {
+            sb.append(" * @email " + config.getEmailText() + STR_WRAP);
+        }
+        if (config.isClassName()) {
+            sb.append(" * @name " + psiClass.getQualifiedName() + STR_WRAP);
+        }
+        if (config.isClassDescription()) {
+            sb.append(" * @description TODO" + STR_WRAP);
+        }
+        if (config.isClassDate()) {
+            sb.append(" * @date " + LocalDateTime.now().format(DATE_TIME_FORMATTER) + STR_WRAP);
+        }
+        if (sb.toString().indexOf(COMMENT_PRE) == -1) {
+            sb.append(" * " + STR_WRAP);
+        }
         sb.append(" */");
 
         return sb.toString();
@@ -215,21 +238,36 @@ public class SmartCommentAction extends AnAction {
     private String getMethodComment(String classFullName, PsiMethod targetMethod, SmartCommentConfig config) {
         StringBuilder sb = new StringBuilder();
         sb.append("/**" + STR_WRAP);
-        sb.append(" * @author " + config.getAuthorText() + STR_WRAP);
-        sb.append(" * @method " + classFullName + "#" + targetMethod.getName() + STR_WRAP);
-        sb.append(" * @description TODO" + STR_WRAP);
+        if (config.isMethodAuthor()) {
+            sb.append(" * @author " + config.getAuthorText() + STR_WRAP);
+        }
+        if (config.isMethodMethod()) {
+            sb.append(" * @method " + classFullName + "#" + targetMethod.getName() + STR_WRAP);
+        }
+        if (config.isMethodDescription()) {
+            sb.append(" * @description TODO" + STR_WRAP);
+        }
         //入参
-        for (PsiParameter parameter : targetMethod.getParameterList().getParameters()) {
-            sb.append(" * @param " + parameter.getName() + STR_WRAP);
+        if (config.isMethodParam()) {
+            for (PsiParameter parameter : targetMethod.getParameterList().getParameters()) {
+                sb.append(" * @param " + parameter.getName() + STR_WRAP);
+            }
         }
         //返回
-        PsiType returnType = targetMethod.getReturnType();
-        if (null != returnType && !KW_VOID.equals(returnType.getPresentableText())) {
-            sb.append(" * @return" + STR_WRAP);
+        if (config.isMethodReturn()) {
+            PsiType returnType = targetMethod.getReturnType();
+            if (null != returnType && !KW_VOID.equals(returnType.getPresentableText())) {
+                sb.append(" * @return" + STR_WRAP);
+            }
         }
         //异常
-        for (PsiClassType referencedType : targetMethod.getThrowsList().getReferencedTypes()) {
-            sb.append(" * @throws " + referencedType.getClassName() + STR_WRAP);
+        if (config.isMethodThrows()) {
+            for (PsiClassType referencedType : targetMethod.getThrowsList().getReferencedTypes()) {
+                sb.append(" * @throws " + referencedType.getClassName() + STR_WRAP);
+            }
+        }
+        if (sb.toString().indexOf(COMMENT_PRE) == -1) {
+            sb.append(" * " + STR_WRAP);
         }
         sb.append(" */" + STR_WRAP);
 
@@ -243,10 +281,10 @@ public class SmartCommentAction extends AnAction {
      * @param psiField
      * @return
      */
-    private String getFieldComment(PsiField psiField) {
+    private String getFieldComment(PsiField psiField, SmartCommentConfig config) {
         StringBuilder sb = new StringBuilder();
         sb.append("/**" + STR_WRAP);
-        sb.append(" * " + psiField.getName() + STR_WRAP);
+        sb.append(" * " + (config.isFieldName() ? psiField.getName() : "") + STR_WRAP);
         sb.append(" */");
 
         return sb.toString();

@@ -2,6 +2,7 @@ import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
+import com.intellij.openapi.project.Project;
 import com.intellij.util.xmlb.XmlSerializerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -18,8 +19,20 @@ import org.jetbrains.annotations.Nullable;
         storages = {@Storage("SmartCommentConfig.xml")}
 )
 public class SmartCommentConfig implements PersistentStateComponent<SmartCommentConfig> {
-    public String authorText = "";
-    public String emailText = "";
+    private String authorText = "";
+    private String emailText = "";
+    private boolean classAuthor = true;
+    private boolean classEmail = true;
+    private boolean className = true;
+    private boolean classDescription = true;
+    private boolean classDate = true;
+    private boolean methodAuthor = true;
+    private boolean methodMethod = true;
+    private boolean methodDescription = true;
+    private boolean methodParam = true;
+    private boolean methodReturn = true;
+    private boolean fieldName = true;
+    private boolean methodThrows = true;
 
     SmartCommentConfig() {
     }
@@ -40,6 +53,102 @@ public class SmartCommentConfig implements PersistentStateComponent<SmartComment
         this.emailText = emailText;
     }
 
+    public boolean isClassAuthor() {
+        return classAuthor;
+    }
+
+    public void setClassAuthor(boolean classAuthor) {
+        this.classAuthor = classAuthor;
+    }
+
+    public boolean isClassEmail() {
+        return classEmail;
+    }
+
+    public void setClassEmail(boolean classEmail) {
+        this.classEmail = classEmail;
+    }
+
+    public boolean isClassName() {
+        return className;
+    }
+
+    public void setClassName(boolean className) {
+        this.className = className;
+    }
+
+    public boolean isClassDescription() {
+        return classDescription;
+    }
+
+    public void setClassDescription(boolean classDescription) {
+        this.classDescription = classDescription;
+    }
+
+    public boolean isClassDate() {
+        return classDate;
+    }
+
+    public void setClassDate(boolean classDate) {
+        this.classDate = classDate;
+    }
+
+    public boolean isMethodAuthor() {
+        return methodAuthor;
+    }
+
+    public void setMethodAuthor(boolean methodAuthor) {
+        this.methodAuthor = methodAuthor;
+    }
+
+    public boolean isMethodMethod() {
+        return methodMethod;
+    }
+
+    public void setMethodMethod(boolean methodMethod) {
+        this.methodMethod = methodMethod;
+    }
+
+    public boolean isMethodDescription() {
+        return methodDescription;
+    }
+
+    public void setMethodDescription(boolean methodDescription) {
+        this.methodDescription = methodDescription;
+    }
+
+    public boolean isMethodParam() {
+        return methodParam;
+    }
+
+    public void setMethodParam(boolean methodParam) {
+        this.methodParam = methodParam;
+    }
+
+    public boolean isMethodReturn() {
+        return methodReturn;
+    }
+
+    public void setMethodReturn(boolean methodReturn) {
+        this.methodReturn = methodReturn;
+    }
+
+    public boolean isFieldName() {
+        return fieldName;
+    }
+
+    public void setFieldName(boolean fieldName) {
+        this.fieldName = fieldName;
+    }
+
+    public boolean isMethodThrows() {
+        return methodThrows;
+    }
+
+    public void setMethodThrows(boolean methodThrows) {
+        this.methodThrows = methodThrows;
+    }
+
     /**
      * @author zhiqiangzhang
      * @method SmartCommentConfig#getInstance
@@ -47,8 +156,8 @@ public class SmartCommentConfig implements PersistentStateComponent<SmartComment
      * @return
      */
     @Nullable
-    public static SmartCommentConfig getInstance() {
-        return ServiceManager.getService(SmartCommentConfig.class);
+    public static SmartCommentConfig getInstance(Project project) {
+        return ServiceManager.getService(project, SmartCommentConfig.class);
     }
 
     /**
