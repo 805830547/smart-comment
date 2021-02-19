@@ -4,9 +4,10 @@
   <!-- 插件名称-->
   <name>Smart Comment</name>
   <!-- 插件版本-->
-  <version>1.0</version>
+  <version>1.1</version>
   <!-- 依赖(上传到插件库必备)-->
   <depends>com.intellij.modules.lang</depends>
+  <depends>com.intellij.modules.java</depends>
   <!-- 供应商邮箱和网址-->
   <vendor email="ly805830547@gmail.com" url="https://github.com/805830547/smart-comment">zhiqiangzhang</vendor>
 

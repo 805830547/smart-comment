@@ -7,9 +7,16 @@ import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * @author zhiqiangzhang
+ * @email ly805830547@gmail.com
+ * @name SmartCommentInspection
+ * @description 代码检查类
+ * @date 2021-02-19 22:23:33
+ */
 public class SmartCommentInspection extends AbstractBaseJavaLocalInspectionTool {
 
-    public static final String QUICK_FIX_NAME = InspectionsBundle.message("todo.comment.display.name");
+    public static final String QUICK_FIX_NAME = "TODO comment";
     private static final Logger LOG = Logger.getInstance("#SmartCommentInspection");
     private final CriQuickFix myQuickFix = new CriQuickFix();
 
@@ -18,28 +25,45 @@ public class SmartCommentInspection extends AbstractBaseJavaLocalInspectionTool 
     public PsiElementVisitor buildVisitor(@NotNull final ProblemsHolder holder, boolean isOnTheFly) {
         return new JavaElementVisitor() {
             @NonNls
-            private final String DESCRIPTION_TEMPLATE = InspectionsBundle.message("todo.comment.display.name");
+            private final String DESCRIPTION_TEMPLATE = QUICK_FIX_NAME;
 
             @Override
             public void visitClass(PsiClass aClass) {
                 super.visitClass(aClass);
-                doCheckForClassElement(aClass, "Class");
+                doCheckForClassElement(aClass);
             }
 
             @Override
             public void visitMethod(PsiMethod method) {
                 super.visitMethod(method);
-                doCheckForClassElement(method, "Method");
+                doCheckForClassElement(method);
             }
 
             @Override
             public void visitField(PsiField field) {
                 super.visitField(field);
-                doCheckForClassElement(field, "Field");
+                doCheckForClassElement(field);
             }
 
-            private void doCheckForClassElement(PsiJavaDocumentedElement element, String elementName) {
-                if (!SmartCommentConfig.getInstance(element.getProject()).isCommentInspection()) {
+            private void doCheckForClassElement(PsiJavaDocumentedElement element) {
+                SmartCommentConfig commentConfig = SmartCommentConfig.getInstance(element.getProject());
+                String elementName;
+                if (element instanceof PsiClass) {
+                    if (!commentConfig.isClassInspection()) {
+                        return;
+                    }
+                    elementName = "Class";
+                } else if (element instanceof PsiMethod) {
+                    if (!commentConfig.isMethodInspection()) {
+                        return;
+                    }
+                    elementName = "Method";
+                } else if (element instanceof PsiField) {
+                    if (!commentConfig.isFieldInspection()) {
+                        return;
+                    }
+                    elementName = "Field";
+                } else {
                     return;
                 }
                 PsiDocComment docComment = element.getDocComment();
@@ -51,6 +75,13 @@ public class SmartCommentInspection extends AbstractBaseJavaLocalInspectionTool 
         };
     }
 
+    /**
+     * @author zhiqiangzhang
+     * @email ly805830547@gmail.com
+     * @name SmartCommentInspection.CriQuickFix
+     * @description 注释检查-自动修改
+     * @date 2021-02-19 22:23:54
+     */
     private static class CriQuickFix implements LocalQuickFix {
 
         @NotNull
