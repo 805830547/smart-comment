@@ -1,10 +1,10 @@
-<idea-plugin>
+<idea-plugin require-restart="false">
   <!-- 插件唯一id-->
   <id>com.zzq.plugin.smart.comment</id>
   <!-- 插件名称-->
   <name>Smart Comment</name>
   <!-- 插件版本-->
-  <version>1.1</version>
+  <version>1.0</version>
   <!-- 依赖(上传到插件库必备)-->
   <depends>com.intellij.modules.lang</depends>
   <depends>com.intellij.modules.java</depends>

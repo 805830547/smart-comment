@@ -8,6 +8,7 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.PsiClassImpl;
+import com.intellij.psi.impl.source.PsiFieldImpl;
 import com.intellij.psi.impl.source.PsiJavaFileImpl;
 import com.intellij.psi.javadoc.PsiDocComment;
 
@@ -29,7 +30,7 @@ public class SmartCommentAction extends AnAction {
     /**
      * COMMENT_PRE 注释前缀
      */
-    private static final String COMMENT_PRE = "@";
+    private static final String COMMENT_PRE = "/**\n";
     /**
      * KW_VOID 关键词 void
      */
@@ -193,22 +194,26 @@ public class SmartCommentAction extends AnAction {
     private static String getClassComment(PsiClass psiClass, SmartCommentConfig config) {
         StringBuilder sb = new StringBuilder();
         sb.append("/**" + STR_WRAP);
-        if (config.isClassAuthor()) {
-            sb.append(" * @author " + config.getAuthorTextOrDefault() + STR_WRAP);
+        if (config.isClassDescription()) {
+            sb.append(" * TODO" + STR_WRAP);
         }
-        if (config.isClassEmail()) {
-            sb.append(" * @email " + config.getEmailText() + STR_WRAP);
-        }
+        //类名
         if (config.isClassName()) {
             sb.append(" * @name " + psiClass.getQualifiedName() + STR_WRAP);
         }
-        if (config.isClassDescription()) {
-            sb.append(" * @description TODO" + STR_WRAP);
+        //作者
+        if (config.isClassAuthor()) {
+            sb.append(" * @author " + config.getAuthorTextOrDefault() + STR_WRAP);
         }
+        //Email
+        if (config.isClassEmail()) {
+            sb.append(" * @email " + config.getEmailText() + STR_WRAP);
+        }
+        //日期
         if (config.isClassDate()) {
             sb.append(" * @date " + LocalDateTime.now().format(DATE_TIME_FORMATTER) + STR_WRAP);
         }
-        if (sb.toString().indexOf(COMMENT_PRE) == -1) {
+        if (COMMENT_PRE.equals(sb.toString())) {
             sb.append(" * " + STR_WRAP);
         }
         sb.append(" */");
@@ -227,15 +232,10 @@ public class SmartCommentAction extends AnAction {
     private static String getMethodComment(PsiMethod psiMethod, SmartCommentConfig config) {
         StringBuilder sb = new StringBuilder();
         sb.append("/**" + STR_WRAP);
-        if (config.isMethodAuthor()) {
-            sb.append(" * @author " + config.getAuthorTextOrDefault() + STR_WRAP);
-        }
-        if (config.isMethodMethod()) {
-            sb.append(" * @method " + ((PsiClassImpl) psiMethod.getParent()).getQualifiedName()
-                    + "#" + psiMethod.getName() + STR_WRAP);
-        }
+        //描述
         if (config.isMethodDescription()) {
-            sb.append(" * @description TODO" + STR_WRAP);
+            sb.append(" * TODO" + STR_WRAP);
+            sb.append(" * " + STR_WRAP);
         }
         //入参
         if (config.isMethodParam()) {
@@ -256,7 +256,16 @@ public class SmartCommentAction extends AnAction {
                 sb.append(" * @throws " + referencedType.getClassName() + STR_WRAP);
             }
         }
-        if (sb.toString().indexOf(COMMENT_PRE) == -1) {
+        //方法名
+        if (config.isMethodMethod()) {
+            sb.append(" * @method " + ((PsiClassImpl) psiMethod.getParent()).getQualifiedName()
+                    + "#" + psiMethod.getHierarchicalMethodSignature().getName() + STR_WRAP);
+        }
+        //作者
+        if (config.isMethodAuthor()) {
+            sb.append(" * @author " + config.getAuthorTextOrDefault() + STR_WRAP);
+        }
+        if (COMMENT_PRE.equals(sb.toString())) {
             sb.append(" * " + STR_WRAP);
         }
         sb.append(" */" + STR_WRAP);
@@ -274,7 +283,7 @@ public class SmartCommentAction extends AnAction {
     private static String getFieldComment(PsiField psiField, SmartCommentConfig config) {
         StringBuilder sb = new StringBuilder();
         sb.append("/**" + STR_WRAP);
-        sb.append(" * " + (config.isFieldName() ? psiField.getName() : "") + STR_WRAP);
+        sb.append(" * " + (config.isFieldName() ? ((PsiFieldImpl)psiField).getName() + " " : "") + "TODO" + STR_WRAP);
         sb.append(" */");
 
         return sb.toString();

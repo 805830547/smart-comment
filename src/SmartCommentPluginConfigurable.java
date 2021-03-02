@@ -8,11 +8,10 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 
 /**
+ * 智能注释配置面板
  * @author zhiqiangzhang
  * @email ly805830547@gmail.com
- * @name SmartCommentPluginConfigurable
- * @description 智能注释配置面板
- * @date 2021-02-04 15:13:37
+ * @date 2021-03-02 22:42:30
  */
 public class SmartCommentPluginConfigurable implements SearchableConfigurable {
     private SmartCommentGui mGUI;
